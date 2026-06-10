@@ -26,30 +26,9 @@ def build_restaurant_tree() -> DecisionNode:
 
     customer = DecisionNode("Customer Operations")
     staff = DecisionNode("Staff Operations")
-    menu_node = DecisionNode("Menu Management")
 
     root.add_child("customer", customer)
     root.add_child("staff", staff)
-    root.add_child("menu", menu_node)
-
-    m_foods = DecisionNode("Food Categories")
-    m_drinks = DecisionNode("Drink Categories")
-    m_desserts = DecisionNode("Dessert Categories")
-
-    menu_node.add_child("foods", m_foods)
-    menu_node.add_child("drinks", m_drinks)
-    menu_node.add_child("desserts", m_desserts)
-
-    m_foods.add_child("lentil_soup", DecisionNode("Lentil Soup ($6)"))
-    m_foods.add_child("tomato_soup", DecisionNode("Tomato Soup ($7)"))
-    m_foods.add_child("beef_steak", DecisionNode("Beef Steak ($25)"))
-    m_foods.add_child("caesar_salad", DecisionNode("Caesar Salad ($9)"))
-
-    m_drinks.add_child("turkish_tea", DecisionNode("Turkish Tea ($3)"))
-    m_drinks.add_child("espresso", DecisionNode("Espresso ($4)"))
-
-    m_desserts.add_child("baklava", DecisionNode("Pistachio Baklava ($8)"))
-    m_desserts.add_child("magnolia", DecisionNode("Strawberry Magnolia ($7)"))
 
     waiter_ops = DecisionNode("Waiter Assignment")
     chef_ops = DecisionNode("Kitchen Duty")
@@ -67,14 +46,14 @@ def build_restaurant_tree() -> DecisionNode:
         c_node = DecisionNode(f"Chef {c_idx}")
         chef_ops.add_child(f"chef_{c_idx}", c_node)
         for f_key, f_name in foods_list:
-            c_node.add_child(f_key, DecisionNode(f_type := f"Chef {c_idx} is preparing {f_name}"))
+            c_node.add_child(f_key, DecisionNode(f"Chef {c_idx} is preparing {f_name}"))
 
     dine_in = DecisionNode("Dine-In Orders")
     takeaway = DecisionNode("Takeaway Orders")
     customer.add_child("dine_in", dine_in)
     customer.add_child("takeaway", takeaway)
 
-    customer_foods = [("lentil_soup", "Tomato Soup", 7), ("tomato_soup", "Tomato Soup", 7), ("beef_steak", "Beef Steak", 25), ("baklava", "Baklava", 8)]
+    customer_foods = [("lentil_soup", "Lentil Soup", 6), ("tomato_soup", "Tomato Soup", 7), ("beef_steak", "Beef Steak", 25), ("baklava", "Baklava", 8)]
 
     for t_idx in [1, 2, 3]:
         t_node = DecisionNode(f"Table {t_idx}")
@@ -88,8 +67,8 @@ def build_restaurant_tree() -> DecisionNode:
     for f_key, f_name, f_price in customer_foods:
         f_node = DecisionNode(f"{f_name} (${f_price})")
         takeaway.add_child(f_key, f_node)
-        f_node.add_child("cash", DecisionNode(f"Customer will have a takeaway meal,{f_name},{f_price}$,with cash"))
-        f_node.add_child("card", DecisionNode(f"Customer will have a takeaway meal,{f_name},{f_price}$,with card"))
+        f_node.add_child("cash", DecisionNode(f"Customer will have a takeaway meal, {f_name}, {f_price}$, with cash"))
+        f_node.add_child("card", DecisionNode(f"Customer will have a takeaway meal, {f_name}, {f_price}$, with card"))
 
     return root
 
@@ -97,7 +76,7 @@ class RestaurantApp:
     def __init__(self, root: tk.Tk, tree_root: DecisionNode):
         self.root = root
         self.root.title("Discrete Structures - Restaurant Graph Visualization V4.0")
-        self.root.geometry("1600x950")
+        self.root.geometry("1200x700")
         
         self.BG_DARK = "#141419"
         self.BG_PANEL = "#1e1e24"
@@ -122,11 +101,18 @@ class RestaurantApp:
         self.paned_window.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
         
         self.canvas_frame = tk.Frame(self.paned_window, bg=self.BG_DARK)
-        self.paned_window.add(self.canvas_frame, weight=4)
+        self.paned_window.add(self.canvas_frame, weight=3)
         
         tk.Label(self.canvas_frame, text="Discrete Structure - Live Graph Model", bg=self.BG_DARK, fg=self.ACCENT_BLUE, font=("Segoe UI", 12, "bold")).pack(anchor=tk.W, pady=(0, 5))
         
         self.canvas = tk.Canvas(self.canvas_frame, bg=self.BG_DARK, highlightthickness=1, highlightbackground=self.LINE_DEFAULT)
+        
+        self.v_scroll = ttk.Scrollbar(self.canvas_frame, orient=tk.VERTICAL, command=self.canvas.yview)
+        self.h_scroll = ttk.Scrollbar(self.canvas_frame, orient=tk.HORIZONTAL, command=self.canvas.xview)
+        self.canvas.configure(yscrollcommand=self.v_scroll.set, xscrollcommand=self.h_scroll.set)
+        
+        self.v_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        self.h_scroll.pack(side=tk.BOTTOM, fill=tk.X)
         self.canvas.pack(fill=tk.BOTH, expand=True)
         
         self.right_frame = tk.Frame(self.paned_window, bg=self.BG_PANEL)
@@ -160,10 +146,10 @@ class RestaurantApp:
                 find_leaves(child)
         find_leaves(self.tree_root)
         
-        leaf_y_map = {leaf: idx * 13 + 30 for idx, leaf in enumerate(leaves)}
+        leaf_y_map = {leaf: idx * 42 + 40 for idx, leaf in enumerate(leaves)}
         
         def calc_coords(node, depth):
-            x = depth * 250 + 120
+            x = depth * 260 + 130
             if node.is_leaf():
                 y = leaf_y_map[node]
             else:
@@ -224,14 +210,16 @@ class RestaurantApp:
                 font_weight = "normal"
 
             if node.is_leaf():
-                w, h = 120, 10
-                font_size = 7
-            else:
-                w, h = 75, 12
+                w, h = 160, 14
                 font_size = 8
+            else:
+                w, h = 85, 15
+                font_size = 9
 
             self.canvas.create_rectangle(x-w, y-h, x+w, y+h, fill=bg_color, outline=outline_color, width=1.5, tags=f"node_{id(node)}")
             self.canvas.create_text(x, y, text=node.name, fill=text_color, font=("Segoe UI", font_size, font_weight), width=w*2-10, justify="center")
+
+        self.canvas.config(scrollregion=self.canvas.bbox("all"))
 
     def update_ui(self):
         self.title_label.config(text=f"{self.current_node.name}")
